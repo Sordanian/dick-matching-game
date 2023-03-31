@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dick Matching Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .scoreboard, .timer {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            max-width: 700px;
+            margin: 20px auto;
+        }
+
+        .card {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            background-color: #ccc;
+            overflow: hidden;
+        }
+
+        .card img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Dick Matching Game</h1>
+    <button id="start">Start Dicking</button>
+    <button id="reset">Reset Dicks</button>
+    <div class="scoreboard">Incorrect Guesses: 0</div>
+    <div class="timer">Time: 0s</div>
+    <div class="game-board" id="game-board"></div>
+    <audio id="audio" src="assets/cdb.mp3"></audio>
+    <script>
+        const startButton = document.getElementById("start");
+        const resetButton = document.getElementById("reset");
+        const scoreboard = document.querySelector(".scoreboard");
+        const timer = document.querySelector(".timer");
+        const gameBoard = document.getElementById("game-board");
+        const audio = document.getElementById("audio");
+
+        const symbols = [
+            "assets/cdb1.png", "assets/cdb1.png",
+            "assets/cdb2.png", "assets/cdb2.png",
+            "assets/cdb3.png", "assets/cdb3.png",
+            "assets/cdb4.png", "assets/cdb4.png",
+            "assets/cdb5.png", "assets/cdb5.png",
+            "assets/cdb6.png", "assets/cdb6.png",
+            "assets/cdb7.png", "assets/cdb7.png",
+            "assets/cdb8.png", "assets/cdb8.png",
+            "assets/cdb9.png", "assets/cdb9.png",
+            "assets/cdb10.png", "assets/cdb10.png",
+            "assets/cdb11.png", "assets/cdb11.png",
+            "assets/cdb12.png", "assets/cdb12.png",
+            "assets/cdb13.png", "assets/cdb13.png",
+            "assets/cdb14.png", "assets/cdb14.png"
+        ];
+
+        let openCards = [];
+        let matchedCards = 0;
+        let score = 0;
+        let time = 0;
+        let interval;
+
+        function shuffle(array) {
+            let currentIndex = array.length, temporaryValue, randomIndex;
+
+            while (0 !== currentIndex) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex -= 1;
+				                temporaryValue = array[currentIndex];
+                array[currentIndex] = array[randomIndex];
+                array[randomIndex] = temporaryValue;
+            }
+            return array;
+        }
+
+        function createCard(symbol) {
+            const card = document.createElement("div");
+            card.classList.add("card");
+            card.innerHTML = `
+                <img src="${symbol}" alt="card symbol" style="display:none;">
+                <img src="assets/static.png" alt="card back">
+            `;
+            card.addEventListener("click", onCardClick);
+            return card;
+        }
+
+        function startGame() {
+            matchedCards = 0;
+            score = 0;
+            time = 0;
+            clearInterval(interval);
+            timer.textContent = "Time: 0s";
+            scoreboard.textContent = "Incorrect Guesses: 0";
+            gameBoard.innerHTML = "";
+
+            const shuffledSymbols = shuffle(symbols);
+            shuffledSymbols.forEach(symbol => {
+                const card = createCard(symbol);
+                gameBoard.appendChild(card);
+            });
+
+            interval = setInterval(() => {
+                time += 1;
+                timer.textContent = `Time: ${time}s`;
+            }, 1000);
+
+            audio.play();
+        }
+
+        function onCardClick(event) {
+            const card = event.currentTarget;
+
+            if (openCards.length < 2 && !card.classList.contains("open")) {
+                card.children[0].style.display = "block";
+                card.children[1].style.display = "none";
+                card.classList.add("open");
+                openCards.push(card);
+
+                if (openCards.length === 2) {
+                    if (openCards[0].innerHTML === openCards[1].innerHTML) {
+                        matchedCards += 2;
+                        openCards.forEach(c => c.removeEventListener("click", onCardClick));
+                    } else {
+                        score++;
+                        scoreboard.textContent = `Incorrect Guesses: ${score}`;
+                        setTimeout(() => {
+                            openCards.forEach(c => {
+                                c.children[0].style.display = "none";
+                                c.children[1].style.display = "block";
+                            });
+                        }, 1000);
+                    }
+
+                    openCards = [];
+
+                    if (matchedCards === symbols.length) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            alert(`Congratulations! You completed the game in ${time}s with ${score} incorrect guesses.`);
+                        }, 500);
+                    }
+                }
+            }
+        }
+
+        function resetGame() {
+            startGame();
+        }
+
+        startButton.addEventListener("click", startGame);
+        resetButton.addEventListener("click", resetGame);
+    </script>
+</body>
+
+</html>
+
+
+               
